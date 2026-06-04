@@ -1,0 +1,64 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: PLACEHOLDER_NAME
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+webhooks:
+  - name: PLACEHOLDER_NAME.webhook-perf-test.svc
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore
+    clientConfig:
+      service:
+        name: webhook-server
+        namespace: webhook-perf-test
+        path: /validate
+        port: 443
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+        scope: Namespaced
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+        scope: Namespaced
+    namespaceSelector:
+      matchLabels:
+        webhook-perf-test: "true"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: PLACEHOLDER_NAME
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+webhooks:
+  - name: PLACEHOLDER_NAME.webhook-perf-test.svc
+    admissionReviewVersions: ["v1"]
+    sideEffects: NoneOnDryRun
+    failurePolicy: Ignore
+    reinvocationPolicy: IfNeeded
+    clientConfig:
+      service:
+        name: webhook-server
+        namespace: webhook-perf-test
+        path: /mutate
+        port: 443
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+        scope: Namespaced
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+        scope: Namespaced
+    namespaceSelector:
+      matchLabels:
+        webhook-perf-test: "true"
