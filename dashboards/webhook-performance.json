@@ -149,14 +149,9 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
-          "legendFormat": "Rejections (legacy metric)",
-          "refId": "A"
-        },
-        {
           "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
           "legendFormat": "Rejections",
-          "refId": "B"
+          "refId": "A"
         }
       ]
     }
