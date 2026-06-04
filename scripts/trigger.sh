@@ -29,13 +29,27 @@ for i in $(seq 1 "${COUNT}"); do
     DEPLOY_NAME="trigger-app-${i}"
     START=$(date +%s%N)
 
+    RETRIES=0
+    MAX_RETRIES=10
     if oc get deployment "${DEPLOY_NAME}" -n "${NAMESPACE}" &>/dev/null; then
-        oc rollout restart deployment/"${DEPLOY_NAME}" -n "${NAMESPACE}"
+        while ! oc rollout restart deployment/"${DEPLOY_NAME}" -n "${NAMESPACE}" 2>/dev/null; do
+            RETRIES=$((RETRIES + 1))
+            if [ "${RETRIES}" -ge "${MAX_RETRIES}" ]; then
+                echo "  ${DEPLOY_NAME}: gave up after ${MAX_RETRIES} webhook rejections"
+                break
+            fi
+            echo "  Webhook rejected request, retrying... (${RETRIES}/${MAX_RETRIES})"
+        done
         oc rollout status deployment/"${DEPLOY_NAME}" -n "${NAMESPACE}" --timeout=120s
     else
-        oc create deployment "${DEPLOY_NAME}" \
-            --image="${IMAGE}" \
-            -n "${NAMESPACE}" 2>/dev/null || true
+        while ! oc create deployment "${DEPLOY_NAME}" --image="${IMAGE}" -n "${NAMESPACE}" 2>/dev/null; do
+            RETRIES=$((RETRIES + 1))
+            if [ "${RETRIES}" -ge "${MAX_RETRIES}" ]; then
+                echo "  ${DEPLOY_NAME}: gave up after ${MAX_RETRIES} webhook rejections"
+                break
+            fi
+            echo "  Webhook rejected request, retrying... (${RETRIES}/${MAX_RETRIES})"
+        done
         oc rollout status deployment/"${DEPLOY_NAME}" -n "${NAMESPACE}" --timeout=120s
     fi
 
