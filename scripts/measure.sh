@@ -44,15 +44,15 @@ if [ -n "${THANOS_HOST}" ]; then
             "https://${THANOS_HOST}/api/v1/query" \
             --data-urlencode "query=${QUERY}" 2>/dev/null)
         echo "${RESULT}" | python3 -c "
-import sys, json
+import sys, json, math
 try:
     data = json.load(sys.stdin)
     results = data.get('data', {}).get('result', [])
-    if not results:
+    active = [(r['metric'].get('name', 'unknown'), float(r['value'][1]))
+              for r in results if r['value'][1] != 'NaN']
+    if not active:
         print('  No data yet. Run trigger.sh and wait ~30s for metrics to appear.')
-    for r in results:
-        name = r['metric'].get('name', 'unknown')
-        val = float(r['value'][1])
+    for name, val in sorted(active, key=lambda x: -x[1]):
         print(f'  {name}: {val*1000:.1f}ms avg')
 except Exception as e:
     print(f'  Error parsing metrics: {e}')
@@ -71,8 +71,9 @@ import sys, json
 try:
     data = json.load(sys.stdin)
     results = data.get('data', {}).get('result', [])
-    if results:
-        print(f'{float(results[0][\"value\"][1])*1000:.1f}')
+    active = [r for r in results if r['value'][1] != 'NaN']
+    if active:
+        print(f'{float(active[0][\"value\"][1])*1000:.1f}')
     else:
         print('N/A')
 except:

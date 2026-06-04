@@ -46,12 +46,19 @@ Walks through: baseline (1 pair) → scale to 5 pairs → scale to 10 pairs → 
 | Variable | Default | Description |
 |---|---|---|
 | `WEBHOOK_DELAY_MS` | `100` | Simulated processing delay per admission request (ms) |
+| `WEBHOOK_REJECT_PERCENT` | `0` | Percentage of validating requests to reject (0-100) |
 | `WEBHOOK_NAME` | `webhook-test` | Identifier in logs and mutation annotations |
 
 Change the delay on a running server:
 
 ```bash
 oc set env deployment/webhook-server WEBHOOK_DELAY_MS=500 -n webhook-perf-test
+```
+
+Simulate a failing webhook (reject 25% of requests):
+
+```bash
+oc set env deployment/webhook-server WEBHOOK_REJECT_PERCENT=25 -n webhook-perf-test
 ```
 
 ## Performance Queries

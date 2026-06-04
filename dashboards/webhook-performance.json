@@ -64,10 +64,39 @@
       ]
     },
     {
+      "title": "Total API Request Duration (including admission)",
+      "description": "End-to-end API request duration showing the total impact of webhooks on request time",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"CREATE|UPDATE\"}[5m])))",
+          "legendFormat": "P99 {{resource}}",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"CREATE|UPDATE\"}[5m])))",
+          "legendFormat": "P50 {{resource}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
       "title": "Webhook Call Rate",
       "description": "Admission webhook calls per second",
       "type": "timeseries",
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 10 },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
@@ -88,13 +117,56 @@
       ]
     },
     {
-      "title": "Webhook Rejection Count",
-      "description": "Total admission webhook rejections (should be 0 for test webhooks)",
-      "type": "stat",
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 10 },
+      "title": "Webhook Server CPU Usage vs Limit",
+      "description": "CPU utilization of webhook server pods compared to their configured limit",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 20 },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "CPU Limit" },
+            "properties": [
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"webhook-perf-test\", container=\"webhook-server\"}[5m]))",
+          "legendFormat": "CPU Usage ({{pod}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (pod) (kube_pod_container_resource_limits{namespace=\"webhook-perf-test\", container=\"webhook-server\", resource=\"cpu\"})",
+          "legendFormat": "CPU Limit",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Webhook Rejections",
+      "description": "Webhook rejection rate over time and total count",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 50,
+            "stacking": { "mode": "normal" }
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -108,8 +180,8 @@
       },
       "targets": [
         {
-          "expr": "sum(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}) or vector(0)",
-          "legendFormat": "Rejections",
+          "expr": "sum by (name) (rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m]))",
+          "legendFormat": "{{name}}",
           "refId": "A"
         }
       ]
@@ -123,5 +195,5 @@
   "timezone": "browser",
   "title": "Webhook Performance",
   "uid": "webhook-perf-test",
-  "version": 1
+  "version": 2
 }

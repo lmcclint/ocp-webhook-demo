@@ -13,8 +13,10 @@ data:
     import os
     import time
     import base64
+    import random
 
     DELAY_MS = int(os.environ.get("WEBHOOK_DELAY_MS", "100"))
+    REJECT_PERCENT = int(os.environ.get("WEBHOOK_REJECT_PERCENT", "0"))
     WEBHOOK_NAME = os.environ.get("WEBHOOK_NAME", "webhook-test")
     CERT_PATH = os.environ.get("TLS_CERT_PATH", "/etc/tls/tls.crt")
     KEY_PATH = os.environ.get("TLS_KEY_PATH", "/etc/tls/tls.key")
@@ -45,8 +47,10 @@ data:
 
             time.sleep(DELAY_MS / 1000.0)
 
+            rejected = False
             if self.path == "/validate":
                 response = self._validate_response(uid)
+                rejected = not response["response"]["allowed"]
             elif self.path == "/mutate":
                 obj = request.get("object", {})
                 has_annotations = bool(obj.get("metadata", {}).get("annotations"))
@@ -64,21 +68,29 @@ data:
             self.wfile.write(resp_body)
 
             elapsed = (time.time() - start) * 1000
+            status = "REJECTED" if rejected else "allowed"
             print(
                 f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} "
                 f"webhook={WEBHOOK_NAME} path={self.path} kind={kind} "
                 f"namespace={namespace} delay={DELAY_MS}ms "
-                f"elapsed={elapsed:.0f}ms"
+                f"elapsed={elapsed:.0f}ms status={status}"
             )
 
         def _validate_response(self, uid):
+            rejected = REJECT_PERCENT > 0 and random.randint(1, 100) <= REJECT_PERCENT
+            response = {
+                "uid": uid,
+                "allowed": not rejected,
+            }
+            if rejected:
+                response["status"] = {
+                    "code": 403,
+                    "message": f"Rejected by {WEBHOOK_NAME} (simulated failure)",
+                }
             return {
                 "apiVersion": "admission.k8s.io/v1",
                 "kind": "AdmissionReview",
-                "response": {
-                    "uid": uid,
-                    "allowed": True,
-                },
+                "response": response,
             }
 
         def _mutate_response(self, uid, has_annotations=False):
@@ -111,7 +123,7 @@ data:
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(CERT_PATH, KEY_PATH)
         server.socket = ctx.wrap_socket(server.socket, server_side=True)
-        print(f"Webhook server starting on :{PORT} delay={DELAY_MS}ms name={WEBHOOK_NAME}")
+        print(f"Webhook server starting on :{PORT} delay={DELAY_MS}ms reject={REJECT_PERCENT}% name={WEBHOOK_NAME}")
         server.serve_forever()
 ---
 apiVersion: apps/v1
@@ -141,8 +153,17 @@ spec:
           env:
             - name: WEBHOOK_DELAY_MS
               value: "100"
+            - name: WEBHOOK_REJECT_PERCENT
+              value: "0"
             - name: WEBHOOK_NAME
               value: "webhook-test"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
           volumeMounts:
             - name: server-code
               mountPath: /app/server.py
