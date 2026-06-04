@@ -14,18 +14,25 @@ echo "Deploying webhook server (ConfigMap + Deployment + Service)..."
 oc apply -f "${DEPLOY_DIR}/01-webhook-server.yaml"
 
 DASHBOARD_DIR="${SCRIPT_DIR}/../dashboards"
-if oc get crd persesdashboards.perses.dev &>/dev/null; then
-    echo "Deploying Perses dashboard..."
-    oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
-    oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
-else
+if ! oc get crd persesdashboards.perses.dev &>/dev/null; then
     echo ""
-    echo "  NOTE: Perses CRDs not found — dashboard will not be deployed."
+    echo "  NOTE: COO not installed — Perses dashboard will not be deployed."
     echo "  To install COO and enable Perses:"
     echo "    oc apply -f deploy/coo-perses/01-coo.yaml"
     echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
     echo "  Then re-run setup.sh after the operator is ready."
     echo ""
+elif ! oc get uiplugin monitoring -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null | grep -q True; then
+    echo ""
+    echo "  NOTE: COO is installed but Perses UI plugin is not enabled or not ready."
+    echo "  To enable it:"
+    echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
+    echo "  Then re-run setup.sh after the plugin is available."
+    echo ""
+else
+    echo "Deploying Perses dashboard..."
+    oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
+    oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
 fi
 
 echo "Waiting for service serving cert..."
