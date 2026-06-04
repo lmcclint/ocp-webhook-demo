@@ -29,6 +29,11 @@ webhooks:
     namespaceSelector:
       matchLabels:
         webhook-perf-test: "true"
+    objectSelector:
+      matchExpressions:
+        - key: app
+          operator: NotIn
+          values: ["webhook-server"]
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -62,3 +67,8 @@ webhooks:
     namespaceSelector:
       matchLabels:
         webhook-perf-test: "true"
+    objectSelector:
+      matchExpressions:
+        - key: app
+          operator: NotIn
+          values: ["webhook-server"]
