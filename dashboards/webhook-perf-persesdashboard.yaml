@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/instance: webhook-perf-test
     app.kubernetes.io/part-of: perses-operator
   name: webhook-perf-test
+  namespace: webhook-perf-test
 spec:
   config:
     display:
