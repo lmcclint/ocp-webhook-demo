@@ -33,6 +33,7 @@ else
     echo "Deploying Perses dashboard..."
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
+    echo "  Dashboard available in OpenShift console: Observe -> Dashboards (Perses)"
 fi
 
 echo "Waiting for service serving cert..."

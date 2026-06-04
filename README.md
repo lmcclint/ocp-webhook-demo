@@ -24,7 +24,7 @@ oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml
 oc get csv -n openshift-cluster-observability-operator -w
 ```
 
-Once the CSV shows `Succeeded`, the dashboard will be deployed automatically by `setup.sh`.
+Once the CSV shows `Succeeded`, the dashboard will be deployed automatically by `setup.sh` and is accessible in the OpenShift console under **Observe → Dashboards (Perses)**.
 
 A standalone Grafana JSON is also available at [dashboards/webhook-performance-grafana.json](dashboards/webhook-performance-grafana.json) if you prefer Grafana.
 
