@@ -13,6 +13,11 @@ oc apply -f "${DEPLOY_DIR}/00-namespace.yaml"
 echo "Deploying webhook server (ConfigMap + Deployment + Service)..."
 oc apply -f "${DEPLOY_DIR}/01-webhook-server.yaml"
 
+DASHBOARD_DIR="${SCRIPT_DIR}/../dashboards"
+echo "Deploying Perses dashboard..."
+oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml" 2>/dev/null || echo "  (GlobalDatasource already exists or Perses not installed — skipping)"
+oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml" 2>/dev/null || echo "  (PersesDashboard CRD not available — skipping)"
+
 echo "Waiting for service serving cert..."
 for i in $(seq 1 30); do
     if oc get secret webhook-server-cert -n "${NAMESPACE}" &>/dev/null; then
