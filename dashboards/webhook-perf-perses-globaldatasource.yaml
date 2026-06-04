@@ -1,0 +1,25 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesGlobalDatasource
+metadata:
+  name: openshift-thanos-querier
+spec:
+  client:
+    kubernetesAuth:
+      enable: true
+    tls:
+      caCert:
+        certPath: /ca/service-ca.crt
+        type: file
+      enable: true
+  config:
+    default: true
+    display:
+      name: OpenShift Thanos Querier
+    plugin:
+      kind: PrometheusDatasource
+      spec:
+        proxy:
+          kind: HTTPProxy
+          spec:
+            secret: openshift-thanos-querier-secret
+            url: 'https://thanos-querier.openshift-monitoring.svc:9091'
