@@ -81,12 +81,12 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"CREATE|UPDATE\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE\"}[5m])))",
           "legendFormat": "P99 {{resource}}",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.50, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"CREATE|UPDATE\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE\"}[5m])))",
           "legendFormat": "P50 {{resource}}",
           "refId": "B"
         }
@@ -181,8 +181,13 @@
       "targets": [
         {
           "expr": "sum by (name) (rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m]))",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{name}} (rejections)",
           "refId": "A"
+        },
+        {
+          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m]))",
+          "legendFormat": "{{name}} (rejected)",
+          "refId": "B"
         }
       ]
     }

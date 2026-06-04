@@ -1,0 +1,22 @@
+# Kubeconfig and credentials
+kubeconfig
+kubeconfig.*
+.kubeconfig
+*.kubeconfig
+auth/
+
+# Demo output logs
+demo-output*.txt
+demo-log*.txt
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
