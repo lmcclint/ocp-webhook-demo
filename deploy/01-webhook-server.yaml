@@ -14,6 +14,7 @@ data:
     import time
     import base64
     import random
+    import sys
 
     DELAY_MS = int(os.environ.get("WEBHOOK_DELAY_MS", "100"))
     REJECT_PERCENT = int(os.environ.get("WEBHOOK_REJECT_PERCENT", "25"))
@@ -35,6 +36,16 @@ data:
             self.end_headers()
 
         def do_POST(self):
+            try:
+                self._handle_post()
+            except Exception as e:
+                import traceback
+                sys.stderr.write(f"ERROR in do_POST: {e}\n")
+                traceback.print_exc(file=sys.stderr)
+                self.send_response(500)
+                self.end_headers()
+
+        def _handle_post(self):
             start = time.time()
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length)
@@ -45,13 +56,15 @@ data:
             kind = request.get("kind", {}).get("kind", "Unknown")
             namespace = request.get("namespace", "")
 
+            path = self.path.split("?")[0]
+
             time.sleep(DELAY_MS / 1000.0)
 
             rejected = False
-            if self.path == "/validate":
+            if path == "/validate":
                 response = self._validate_response(uid)
                 rejected = not response["response"]["allowed"]
-            elif self.path == "/mutate":
+            elif path == "/mutate":
                 obj = request.get("object", {})
                 has_annotations = bool(obj.get("metadata", {}).get("annotations"))
                 response = self._mutate_response(uid, has_annotations)
@@ -71,7 +84,7 @@ data:
             status = "REJECTED" if rejected else "allowed"
             print(
                 f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} "
-                f"webhook={WEBHOOK_NAME} path={self.path} kind={kind} "
+                f"webhook={WEBHOOK_NAME} path={path} kind={kind} "
                 f"namespace={namespace} delay={DELAY_MS}ms "
                 f"elapsed={elapsed:.0f}ms status={status}"
             )
