@@ -93,13 +93,14 @@
       ]
     },
     {
-      "title": "Webhook Call Rate (total)",
-      "description": "Total admission webhook calls per second across all webhook-perf webhooks",
+      "title": "Webhook Calls (5m window)",
+      "description": "Total webhook calls in the last 5 minutes",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 10 },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
+          "unit": "short",
+          "decimals": 0,
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
@@ -110,25 +111,25 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
-          "legendFormat": "Validating calls/s",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
+          "legendFormat": "Validating calls",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
-          "legendFormat": "Mutating calls/s",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
+          "legendFormat": "Mutating calls",
           "refId": "B"
         }
       ]
     },
     {
-      "title": "Webhook Rejections",
-      "description": "Total webhook rejection rate over time",
+      "title": "Webhook Rejections (5m window)",
+      "description": "Total webhook rejections in the last 5 minutes",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
       "fieldConfig": {
         "defaults": {
-          "unit": "cps",
+          "unit": "short",
           "decimals": 0,
           "custom": {
             "drawStyle": "bars",
@@ -148,13 +149,13 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
-          "legendFormat": "Rejections/s (legacy metric)",
+          "expr": "sum(increase(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
+          "legendFormat": "Rejections (legacy metric)",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
-          "legendFormat": "Rejections/s",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
+          "legendFormat": "Rejections",
           "refId": "B"
         }
       ]
