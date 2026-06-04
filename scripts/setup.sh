@@ -30,7 +30,7 @@ elif ! oc get uiplugin monitoring -o jsonpath='{.status.conditions[?(@.type=="Av
     echo "  Then re-run setup.sh after the plugin is available."
     echo ""
 else
-    echo "Deploying Perses dashboard..."
+    echo "Deploying Perses Thanos datasource and dashboard..."
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
     echo "  Dashboard available in OpenShift console: Observe -> Dashboards (Perses)"
