@@ -14,7 +14,7 @@ echo "Deploying webhook server (ConfigMap + Deployment + Service)..."
 oc apply -f "${DEPLOY_DIR}/01-webhook-server.yaml"
 
 DASHBOARD_DIR="${SCRIPT_DIR}/../dashboards"
-if oc api-resources --api-group=perses.dev 2>/dev/null | grep -q PersesDashboard; then
+if oc get crd persesdashboards.perses.dev &>/dev/null; then
     echo "Deploying Perses dashboard..."
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
     oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
