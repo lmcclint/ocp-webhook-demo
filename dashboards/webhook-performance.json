@@ -9,8 +9,8 @@
   "links": [],
   "panels": [
     {
-      "title": "Per-Webhook Admission Latency",
-      "description": "Average latency per webhook over time",
+      "title": "Top 10 Webhook Admission Latency",
+      "description": "Average latency for the 10 slowest webhooks over time",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 },
       "fieldConfig": {
@@ -28,7 +28,7 @@
       },
       "targets": [
         {
-          "expr": "rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m])",
+          "expr": "topk(10, rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m]))",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
@@ -65,7 +65,7 @@
     },
     {
       "title": "Total API Request Duration (including admission)",
-      "description": "End-to-end API request duration showing the total impact of webhooks on request time",
+      "description": "P99 end-to-end API request duration for pod/deployment create and update operations",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 },
       "fieldConfig": {
@@ -81,91 +81,59 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE\"}[5m])))",
-          "legendFormat": "P99 {{resource}}",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE|PATCH\"}[5m])))",
+          "legendFormat": "P99 all create/update",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.50, sum by (le, resource) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE\"}[5m])))",
-          "legendFormat": "P50 {{resource}}",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(apiserver_request_duration_seconds_bucket{resource=~\"pods|deployments\", subresource=\"\", verb=~\"POST|PUT|CREATE|UPDATE|PATCH\"}[5m])))",
+          "legendFormat": "P50 all create/update",
           "refId": "B"
         }
       ]
     },
     {
-      "title": "Webhook Call Rate",
-      "description": "Admission webhook calls per second",
+      "title": "Webhook Call Rate (total)",
+      "description": "Total admission webhook calls per second across all webhook-perf webhooks",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 10 },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
           "custom": {
-            "drawStyle": "bars",
-            "lineWidth": 1,
-            "fillOpacity": 50
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 20
           }
         },
         "overrides": []
       },
       "targets": [
         {
-          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m]))",
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "title": "Webhook Server CPU Usage vs Limit",
-      "description": "CPU utilization of webhook server pods compared to their configured limit",
-      "type": "timeseries",
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 20 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "CPU Limit" },
-            "properties": [
-              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"webhook-perf-test\", container=\"webhook-server\"}[5m]))",
-          "legendFormat": "CPU Usage ({{pod}})",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
+          "legendFormat": "Validating calls/s",
           "refId": "A"
         },
         {
-          "expr": "sum by (pod) (kube_pod_container_resource_limits{namespace=\"webhook-perf-test\", container=\"webhook-server\", resource=\"cpu\"})",
-          "legendFormat": "CPU Limit",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
+          "legendFormat": "Mutating calls/s",
           "refId": "B"
         }
       ]
     },
     {
       "title": "Webhook Rejections",
-      "description": "Webhook rejection rate over time and total count",
+      "description": "Total webhook rejection rate over time",
       "type": "timeseries",
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "cps",
+          "decimals": 0,
           "custom": {
             "drawStyle": "bars",
             "lineWidth": 1,
-            "fillOpacity": 50,
-            "stacking": { "mode": "normal" }
+            "fillOpacity": 50
           },
           "thresholds": {
             "mode": "absolute",
@@ -180,13 +148,13 @@
       },
       "targets": [
         {
-          "expr": "sum by (name) (rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
-          "legendFormat": "{{name}} (rejections)",
+          "expr": "sum(rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
+          "legendFormat": "Rejections/s (legacy metric)",
           "refId": "A"
         },
         {
-          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
-          "legendFormat": "{{name}} (rejected)",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
+          "legendFormat": "Rejections/s",
           "refId": "B"
         }
       ]
@@ -200,5 +168,5 @@
   "timezone": "browser",
   "title": "Webhook Performance",
   "uid": "webhook-perf-test",
-  "version": 2
+  "version": 3
 }
