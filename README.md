@@ -77,7 +77,7 @@ To capture output for later analysis:
 | Variable | Default | Description |
 |---|---|---|
 | `WEBHOOK_DELAY_MS` | `100` | Simulated processing delay per admission request (ms) |
-| `WEBHOOK_REJECT_PERCENT` | `5` | Percentage of validating requests to reject per webhook (0-100). With N webhooks, effective rejection rate is 1-(1-rate/100)^N |
+| `WEBHOOK_REJECT_PERCENT` | `15` | Percentage of validating requests to reject per webhook (0-100). With N webhooks, effective rejection rate is 1-(1-rate/100)^N |
 | `WEBHOOK_NAME` | `webhook-test` | Identifier in logs and mutation annotations |
 
 Change the delay on a running server:
