@@ -66,27 +66,27 @@ echo "=== Results ==="
 echo "Total time: ${TOTAL_MS}ms for ${COUNT} deployment(s)"
 echo ""
 
-echo "Mutating webhook annotations on pods:"
-echo "  (webhook-test/processed-by is added by our mutating webhook)"
+echo "--- Mutation Check ---"
+echo "The mutating webhook adds: webhook-test/processed-by: webhook-test"
 echo ""
-oc get pods -n "${NAMESPACE}" -l app=trigger-app-1 -o json 2>/dev/null | python3 -c "
+oc get pods -n "${NAMESPACE}" --sort-by=.metadata.creationTimestamp -o json 2>/dev/null | python3 -c "
 import sys, json
-try:
-    data = json.load(sys.stdin)
-    for pod in data.get('items', []):
-        name = pod['metadata']['name']
-        annotations = pod['metadata'].get('annotations', {})
-        webhook_ann = {k: v for k, v in annotations.items() if 'webhook' in k.lower()}
-        other_count = len(annotations) - len(webhook_ann)
-        print(f'  {name}:')
-        if webhook_ann:
-            for k, v in webhook_ann.items():
-                print(f'    * {k}: {v}')
-        else:
-            print(f'    (no webhook annotations)')
-        print(f'    + {other_count} other annotations (scc, ovn, cni, etc.)')
-except Exception as e:
-    print(f'  Error: {e}')
+data = json.load(sys.stdin)
+pods = data.get('items', [])
+if not pods:
+    print('  No pods found')
+    sys.exit(0)
+latest = pods[-1]
+name = latest['metadata']['name']
+annotations = latest['metadata'].get('annotations', {})
+webhook_val = annotations.get('webhook-test/processed-by')
+other_count = len(annotations) - (1 if webhook_val else 0)
+print(f'  Pod: {name}')
+if webhook_val:
+    print(f'  Mutation:  webhook-test/processed-by = {webhook_val}')
+else:
+    print(f'  Mutation:  NOT FOUND — mutating webhook may not have fired')
+print(f'  Other annotations: {other_count} (scc, ovn, cni, etc.)')
 " 2>/dev/null || true
 echo ""
 
