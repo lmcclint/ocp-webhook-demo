@@ -7,6 +7,10 @@ NAMESPACE="webhook-perf-test"
 
 echo "=== Deploying Webhook Performance Tester ==="
 
+echo "Cleaning up any existing webhook configurations..."
+oc delete validatingwebhookconfiguration -l app=webhook-perf-test --ignore-not-found 2>/dev/null || true
+oc delete mutatingwebhookconfiguration -l app=webhook-perf-test --ignore-not-found 2>/dev/null || true
+
 echo "Creating namespace..."
 oc apply -f "${DEPLOY_DIR}/00-namespace.yaml"
 
