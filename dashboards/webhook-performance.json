@@ -180,12 +180,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (name) (rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m]))",
+          "expr": "sum by (name) (rate(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}[5m])) or vector(0)",
           "legendFormat": "{{name}} (rejections)",
           "refId": "A"
         },
         {
-          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m]))",
+          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
           "legendFormat": "{{name}} (rejected)",
           "refId": "B"
         }
