@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 pause() {
     echo ""
-    read -r -p "Press Enter to continue..."
+    read -r -p "Press Enter to continue..." </dev/tty
     echo ""
 }
 
@@ -106,7 +106,7 @@ pause
 
 # Cleanup
 echo "━━━ Cleanup ━━━"
-read -r -p "Run teardown to remove all test resources? [Y/n] " answer
+read -r -p "Run teardown to remove all test resources? [Y/n] " answer </dev/tty
 case "${answer}" in
     [nN]*)
         echo "Skipping teardown. Run ./scripts/teardown.sh when ready."
