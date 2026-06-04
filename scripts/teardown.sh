@@ -18,8 +18,14 @@ oc delete secret webhook-server-cert -n "${NAMESPACE}" --ignore-not-found
 echo "Removing trigger deployments..."
 oc delete deployments -n "${NAMESPACE}" -l app --ignore-not-found 2>/dev/null || true
 
-echo "Deleting namespace..."
-oc delete namespace "${NAMESPACE}" --ignore-not-found
-
 echo ""
 echo "=== Teardown Complete ==="
+echo ""
+echo "The following resources were preserved for reuse:"
+echo "  - Namespace: ${NAMESPACE}"
+echo "  - Perses dashboard and datasource (if deployed)"
+echo ""
+echo "To fully remove everything when done:"
+echo "  oc delete -f dashboards/webhook-perf-persesdashboard.yaml --ignore-not-found"
+echo "  oc delete -f dashboards/webhook-perf-perses-globaldatasource.yaml --ignore-not-found"
+echo "  oc delete namespace ${NAMESPACE}"
