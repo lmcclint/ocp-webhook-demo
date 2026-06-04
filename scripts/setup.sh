@@ -7,6 +7,38 @@ NAMESPACE="webhook-perf-test"
 
 echo "=== Deploying Webhook Performance Tester ==="
 
+echo "Checking access requirements..."
+PREFLIGHT_FAIL=0
+
+if ! oc auth can-i create namespaces &>/dev/null; then
+    echo "  ERROR: Cannot create namespaces"
+    PREFLIGHT_FAIL=1
+fi
+
+if ! oc auth can-i create validatingwebhookconfigurations &>/dev/null; then
+    echo "  ERROR: Cannot create ValidatingWebhookConfigurations (cluster-scoped)"
+    PREFLIGHT_FAIL=1
+fi
+
+if ! oc auth can-i create mutatingwebhookconfigurations &>/dev/null; then
+    echo "  ERROR: Cannot create MutatingWebhookConfigurations (cluster-scoped)"
+    PREFLIGHT_FAIL=1
+fi
+
+if ! oc auth can-i get routes -n openshift-monitoring &>/dev/null; then
+    echo "  WARNING: Cannot read routes in openshift-monitoring — metrics collection will be limited"
+fi
+
+if [ "${PREFLIGHT_FAIL}" -eq 1 ]; then
+    echo ""
+    echo "This toolkit requires cluster-admin access. Log in with:"
+    echo "  oc login --token=<token> --server=<api-url>"
+    exit 1
+fi
+
+echo "  Access checks passed (logged in as: $(oc whoami 2>/dev/null || echo 'unknown'))"
+echo ""
+
 echo "Cleaning up any existing webhook configurations..."
 oc delete validatingwebhookconfiguration -l app=webhook-perf-test --ignore-not-found 2>/dev/null || true
 oc delete mutatingwebhookconfiguration -l app=webhook-perf-test --ignore-not-found 2>/dev/null || true
