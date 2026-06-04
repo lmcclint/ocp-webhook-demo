@@ -1,0 +1,127 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Admission webhook performance metrics for webhook-perf-test",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "Per-Webhook Admission Latency",
+      "description": "Average latency per webhook over time",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m])",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Total Admission Step Duration",
+      "description": "Combined duration of all webhooks in each admission step",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "rate(apiserver_admission_step_admission_duration_seconds_sum{type=\"validate\"}[5m]) / rate(apiserver_admission_step_admission_duration_seconds_count{type=\"validate\"}[5m])",
+          "legendFormat": "Validating",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(apiserver_admission_step_admission_duration_seconds_sum{type=\"mutate\"}[5m]) / rate(apiserver_admission_step_admission_duration_seconds_count{type=\"mutate\"}[5m])",
+          "legendFormat": "Mutating",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Webhook Call Rate",
+      "description": "Admission webhook calls per second",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 50
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m]))",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Webhook Rejection Count",
+      "description": "Total admission webhook rejections (should be 0 for test webhooks)",
+      "type": "stat",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "sum(apiserver_admission_webhook_rejection_count{name=~\"webhook-perf-.*\"}) or vector(0)",
+          "legendFormat": "Rejections",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["webhook", "admission", "performance", "openshift"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Webhook Performance",
+  "uid": "webhook-perf-test",
+  "version": 1
+}
