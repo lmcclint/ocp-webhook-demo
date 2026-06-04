@@ -66,8 +66,28 @@ echo "=== Results ==="
 echo "Total time: ${TOTAL_MS}ms for ${COUNT} deployment(s)"
 echo ""
 
-echo "Checking mutating webhook annotations on pods..."
-oc get pods -n "${NAMESPACE}" -l app=trigger-app-1 -o jsonpath='{range .items[*]}{.metadata.name}: {.metadata.annotations}{"\n"}{end}' 2>/dev/null || true
+echo "Mutating webhook annotations on pods:"
+echo "  (webhook-test/processed-by is added by our mutating webhook)"
+echo ""
+oc get pods -n "${NAMESPACE}" -l app=trigger-app-1 -o json 2>/dev/null | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    for pod in data.get('items', []):
+        name = pod['metadata']['name']
+        annotations = pod['metadata'].get('annotations', {})
+        webhook_ann = {k: v for k, v in annotations.items() if 'webhook' in k.lower()}
+        other_count = len(annotations) - len(webhook_ann)
+        print(f'  {name}:')
+        if webhook_ann:
+            for k, v in webhook_ann.items():
+                print(f'    * {k}: {v}')
+        else:
+            print(f'    (no webhook annotations)')
+        print(f'    + {other_count} other annotations (scc, ovn, cni, etc.)')
+except Exception as e:
+    print(f'  Error: {e}')
+" 2>/dev/null || true
 echo ""
 
 VALIDATE_COUNT=$(oc get validatingwebhookconfiguration -l app=webhook-perf-test --no-headers 2>/dev/null | wc -l | tr -d ' ')
