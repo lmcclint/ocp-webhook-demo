@@ -126,7 +126,7 @@
       "title": "Webhook Rejections (5m window)",
       "description": "Total webhook rejections in the last 5 minutes",
       "type": "timeseries",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 20 },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
@@ -151,6 +151,44 @@
         {
           "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
           "legendFormat": "Rejections",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Top 10 Rejecting Webhooks (5m window)",
+      "description": "Which webhooks are rejecting the most requests",
+      "type": "bargauge",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])))",
+          "legendFormat": "{{name}}",
           "refId": "A"
         }
       ]
