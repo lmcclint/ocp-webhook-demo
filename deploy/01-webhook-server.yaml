@@ -17,7 +17,7 @@ data:
     import sys
 
     DELAY_MS = int(os.environ.get("WEBHOOK_DELAY_MS", "100"))
-    REJECT_PERCENT = int(os.environ.get("WEBHOOK_REJECT_PERCENT", "25"))
+    REJECT_PERCENT = int(os.environ.get("WEBHOOK_REJECT_PERCENT", "5"))
     WEBHOOK_NAME = os.environ.get("WEBHOOK_NAME", "webhook-test")
     CERT_PATH = os.environ.get("TLS_CERT_PATH", "/etc/tls/tls.crt")
     KEY_PATH = os.environ.get("TLS_KEY_PATH", "/etc/tls/tls.key")
@@ -169,7 +169,7 @@ spec:
             - name: WEBHOOK_DELAY_MS
               value: "100"
             - name: WEBHOOK_REJECT_PERCENT
-              value: "25"
+              value: "5"
             - name: WEBHOOK_NAME
               value: "webhook-test"
           resources:

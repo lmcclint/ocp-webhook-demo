@@ -90,7 +90,10 @@ echo "Setting webhook delay to 500ms to simulate a policy engine"
 echo "under load (e.g., Kyverno evaluating complex policies)."
 echo "With 10 webhook pairs, that's 10 seconds per API call."
 echo ""
-oc set env deployment/webhook-server WEBHOOK_DELAY_MS=500 -n webhook-perf-test
+until oc set env deployment/webhook-server WEBHOOK_DELAY_MS=500 -n webhook-perf-test 2>/dev/null; do
+    echo "  Webhook rejected, retrying..."
+    sleep 1
+done
 oc rollout status deployment/webhook-server -n webhook-perf-test --timeout=120s
 pause
 

@@ -85,7 +85,7 @@ except:
         echo ""
 
         # Webhook rejection count
-        echo "Webhook rejections (should be 0):"
+        echo "Webhook rejections:"
         QUERY='sum by (name) (apiserver_admission_webhook_rejection_count{name=~"webhook-perf-.*"})'
         RESULT=$(curl -sk -H "Authorization: Bearer ${TOKEN}" \
             "https://${THANOS_HOST}/api/v1/query" \
@@ -96,7 +96,7 @@ try:
     data = json.load(sys.stdin)
     results = data.get('data', {}).get('result', [])
     if not results:
-        print('  0 rejections (good)')
+        print('  0 rejections')
     for r in results:
         name = r['metric'].get('name', 'unknown')
         val = r['value'][1]
