@@ -14,9 +14,19 @@ echo "Deploying webhook server (ConfigMap + Deployment + Service)..."
 oc apply -f "${DEPLOY_DIR}/01-webhook-server.yaml"
 
 DASHBOARD_DIR="${SCRIPT_DIR}/../dashboards"
-echo "Deploying Perses dashboard..."
-oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml" 2>/dev/null || echo "  (GlobalDatasource already exists or Perses not installed — skipping)"
-oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml" 2>/dev/null || echo "  (PersesDashboard CRD not available — skipping)"
+if oc api-resources --api-group=perses.dev 2>/dev/null | grep -q PersesDashboard; then
+    echo "Deploying Perses dashboard..."
+    oc apply -f "${DASHBOARD_DIR}/webhook-perf-perses-globaldatasource.yaml"
+    oc apply -f "${DASHBOARD_DIR}/webhook-perf-persesdashboard.yaml"
+else
+    echo ""
+    echo "  NOTE: Perses CRDs not found — dashboard will not be deployed."
+    echo "  To install COO and enable Perses:"
+    echo "    oc apply -f deploy/coo-perses/01-coo.yaml"
+    echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
+    echo "  Then re-run setup.sh after the operator is ready."
+    echo ""
+fi
 
 echo "Waiting for service serving cert..."
 for i in $(seq 1 30); do
