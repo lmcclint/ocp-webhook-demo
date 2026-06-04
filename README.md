@@ -1,0 +1,86 @@
+# Webhook Performance Tester
+
+A toolkit for measuring and demonstrating the performance impact of admission webhooks on OpenShift clusters.
+
+Deploys a simulated webhook server with configurable latency, registers multiple validating and mutating webhook configurations to demonstrate cascading effects, and provides scripts and queries to measure the impact.
+
+## Quick Start
+
+```bash
+# Deploy the webhook server
+./scripts/setup.sh
+
+# Register 5 validating + 5 mutating webhooks (100ms delay each)
+./scripts/scale-webhooks.sh 5
+
+# Trigger the webhooks by deploying a sample app
+./scripts/trigger.sh
+
+# Measure the latency impact
+./scripts/measure.sh
+
+# Clean up everything
+./scripts/teardown.sh
+```
+
+## Guided Demo
+
+Run the full demo with narration and pauses between steps:
+
+```bash
+./scripts/demo.sh
+```
+
+Walks through: baseline (1 pair) → scale to 5 pairs → scale to 10 pairs → slow policy engine simulation.
+
+## How It Works
+
+- A Python webhook server runs on a UBI 9 base image. The server code is delivered via ConfigMap — no image build required.
+- The server responds to admission review requests with a configurable delay (`WEBHOOK_DELAY_MS` env var), simulating a real policy engine's processing time.
+- `scale-webhooks.sh N` registers N ValidatingWebhookConfigurations + N MutatingWebhookConfigurations, all pointing at the same server. Each registration adds a sequential admission call to every matching API request.
+- Webhooks only target the `webhook-perf-test` namespace (via label selector), so they don't affect the rest of the cluster.
+- TLS is handled automatically via OpenShift service serving certificates.
+
+## Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `WEBHOOK_DELAY_MS` | `100` | Simulated processing delay per admission request (ms) |
+| `WEBHOOK_NAME` | `webhook-test` | Identifier in logs and mutation annotations |
+
+Change the delay on a running server:
+
+```bash
+oc set env deployment/webhook-server WEBHOOK_DELAY_MS=500 -n webhook-perf-test
+```
+
+## Performance Queries
+
+See [docs/performance-queries.md](docs/performance-queries.md) for PromQL queries, `oc` commands, and an interpretation guide.
+
+A pre-built Grafana dashboard is available at [dashboards/webhook-performance.json](dashboards/webhook-performance.json).
+
+## Tested Versions
+
+See [docs/tested-versions.md](docs/tested-versions.md).
+
+## Repository Structure
+
+```
+├── deploy/                         # Kubernetes/OpenShift manifests
+│   ├── 00-namespace.yaml           # Namespace with webhook selector label
+│   ├── 01-webhook-server.yaml      # ConfigMap (Python), Deployment, Service
+│   └── 02-webhook-config-template.yaml  # Template for webhook registrations
+├── scripts/                        # Orchestration scripts
+│   ├── setup.sh                    # Deploy the webhook server
+│   ├── scale-webhooks.sh           # Register N webhook pairs
+│   ├── trigger.sh                  # Deploy sample app to fire webhooks
+│   ├── measure.sh                  # Query and display latency metrics
+│   ├── demo.sh                     # Guided walkthrough
+│   └── teardown.sh                 # Clean up all resources
+├── dashboards/
+│   └── webhook-performance.json    # Grafana dashboard
+└── docs/
+    ├── performance-queries.md      # Full query reference
+    └── tested-versions.md          # Tested OpenShift versions
+```
