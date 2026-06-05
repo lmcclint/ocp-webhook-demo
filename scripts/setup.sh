@@ -55,6 +55,7 @@ if ! oc get crd persesdashboards.perses.dev &>/dev/null; then
     echo "  NOTE: COO not installed — Perses dashboard will not be deployed."
     echo "  To install COO and enable Perses:"
     echo "    oc apply -f deploy/coo-perses/01-coo.yaml"
+    echo "    oc get csv -n openshift-cluster-observability-operator -w  # wait for Succeeded"
     echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
     echo "  Then re-run setup.sh after the operator is ready."
     echo ""
