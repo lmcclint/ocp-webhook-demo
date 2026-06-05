@@ -140,6 +140,8 @@ grep "admission" /var/log/kube-apiserver/audit.log | \
 
 ## Interpreting Results
 
+> **Note:** The thresholds below are general guidelines based on common production observations, not official Kubernetes or Red Hat benchmarks. Actual acceptable values will vary depending on cluster size, workload patterns, and SLO requirements.
+
 | Metric | Healthy | Warning | Critical |
 |---|---|---|---|
 | Per-webhook latency | < 100ms | 100-500ms | > 500ms |
