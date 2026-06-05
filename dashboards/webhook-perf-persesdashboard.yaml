@@ -151,8 +151,8 @@ spec:
         kind: Panel
         spec:
           display:
-            description: Total webhook rejections in the last 5 minutes
-            name: Webhook Rejections (5m window)
+            description: Webhook rejections over time
+            name: Webhook Rejections
           plugin:
             kind: TimeSeriesChart
             spec:
@@ -170,9 +170,9 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
-                      rejected="true"}[5m])) or vector(0)
-                    seriesNameFormat: Rejections
+                    query: sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
+                      rejected="true"}[5m])) > 0
+                    seriesNameFormat: "{{name}}"
       "5":
         kind: Panel
         spec:
@@ -195,7 +195,7 @@ spec:
                   spec:
                     query: topk(10, sum by (name)
                       (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
-                      rejected="true"}[$__range])))
+                      rejected="true"}[$__range])) > 0)
                     seriesNameFormat: "{{name}}"
     layouts:
       - kind: Grid

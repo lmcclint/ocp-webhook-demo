@@ -123,8 +123,8 @@
       ]
     },
     {
-      "title": "Webhook Rejections (5m window)",
-      "description": "Total webhook rejections in the last 5 minutes",
+      "title": "Webhook Rejections",
+      "description": "Webhook rejections over time",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 20 },
       "fieldConfig": {
@@ -149,8 +149,8 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[5m])) or vector(0)",
-          "legendFormat": "Rejections",
+          "expr": "sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[5m])) > 0",
+          "legendFormat": "{{name}}",
           "refId": "A"
         }
       ]
@@ -187,7 +187,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[$__range])))",
+          "expr": "topk(10, sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[$__range])) > 0)",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
