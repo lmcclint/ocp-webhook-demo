@@ -40,6 +40,9 @@ A standalone Grafana JSON is also available at [dashboards/webhook-performance-g
 # Trigger the webhooks by deploying a sample app
 ./scripts/trigger.sh
 
+# Or run continuous load to populate dashboards (Ctrl-C to stop)
+./scripts/trigger.sh --loop [--interval 5] [--count 1]
+
 # Measure the latency impact
 ./scripts/measure.sh
 
