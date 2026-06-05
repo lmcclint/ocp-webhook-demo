@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Admission webhook performance metrics for webhook-perf-test",
+  "description": "Admission webhook performance metrics",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -28,7 +28,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\"}[5m]))",
+          "expr": "topk(10, rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\"}[5m]))",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
@@ -36,7 +36,7 @@
     },
     {
       "title": "Total Webhook Overhead Per Request",
-      "description": "Sum of all webhook-perf webhook latencies — the total admission delay added to each API request",
+      "description": "Sum of all matched webhook latencies — the total admission delay added to each API request",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
       "fieldConfig": {
@@ -52,12 +52,12 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"validating\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"validating\"}[5m]))",
           "legendFormat": "Validating total",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"admit\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"admit\"}[5m]))",
           "legendFormat": "Mutating total",
           "refId": "B"
         }
@@ -111,12 +111,12 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"validating\"}[5m]))",
           "legendFormat": "Validating calls",
           "refId": "A"
         },
         {
-          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"admit\"}[5m]))",
           "legendFormat": "Mutating calls",
           "refId": "B"
         }
@@ -149,7 +149,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[5m])) or vector(0)",
+          "expr": "sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[5m])) or vector(0)",
           "legendFormat": "Rejections",
           "refId": "A"
         }
@@ -187,7 +187,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", rejected=\"true\"}[$__range])))",
+          "expr": "topk(10, sum by (name) (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", rejected=\"true\"}[$__range])))",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
@@ -196,11 +196,36 @@
   ],
   "schemaVersion": 39,
   "tags": ["webhook", "admission", "performance", "openshift"],
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "name": "webhook_filter",
+        "label": "Webhooks",
+        "type": "custom",
+        "current": {
+          "text": "webhook-perf-test only",
+          "value": "webhook-perf-.*"
+        },
+        "options": [
+          {
+            "text": "webhook-perf-test only",
+            "value": "webhook-perf-.*",
+            "selected": true
+          },
+          {
+            "text": "All cluster webhooks",
+            "value": ".*",
+            "selected": false
+          }
+        ],
+        "query": "webhook-perf-.* : webhook-perf-test only, .* : All cluster webhooks"
+      }
+    ]
+  },
   "time": { "from": "now-30m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Webhook Performance",
   "uid": "webhook-perf-test",
-  "version": 3
+  "version": 4
 }

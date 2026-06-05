@@ -35,9 +35,9 @@ spec:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: topk(10,
-                      rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"webhook-perf-.*"}[5m])
+                      rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"$webhook_filter"}[5m])
                       /
-                      rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*"}[5m]))
+                      rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter"}[5m]))
                     seriesNameFormat: "{{name}}"
       "1":
         kind: Panel
@@ -62,8 +62,8 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"webhook-perf-.*",
-                      type="validating"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"$webhook_filter",
+                      type="validating"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       type="validating"}[5m]))
                     seriesNameFormat: Validating total
             - kind: TimeSeriesQuery
@@ -71,8 +71,8 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"webhook-perf-.*",
-                      type="admit"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"$webhook_filter",
+                      type="admit"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       type="admit"}[5m]))
                     seriesNameFormat: Mutating total
       "2":
@@ -136,7 +136,7 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       type="validating"}[5m]))
                     seriesNameFormat: Validating calls
             - kind: TimeSeriesQuery
@@ -144,7 +144,7 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       type="admit"}[5m]))
                     seriesNameFormat: Mutating calls
       "4":
@@ -170,7 +170,7 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                    query: sum(increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       rejected="true"}[5m])) or vector(0)
                     seriesNameFormat: Rejections
       "5":
@@ -194,7 +194,7 @@ spec:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: topk(10, sum by (name)
-                      (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                      (increase(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
                       rejected="true"}[$__range])))
                     seriesNameFormat: "{{name}}"
     layouts:
@@ -241,7 +241,23 @@ spec:
               height: 10
               content:
                 $ref: "#/spec/panels/5"
-    variables: []
+    variables:
+      - kind: ListVariable
+        spec:
+          name: webhook_filter
+          display:
+            name: Webhooks
+          defaultValue: "webhook-perf-.*"
+          allowMultiple: false
+          allowAllValue: false
+          plugin:
+            kind: StaticListVariable
+            spec:
+              values:
+                - label: "webhook-perf-test only"
+                  value: "webhook-perf-.*"
+                - label: "All cluster webhooks"
+                  value: ".*"
     duration: 1h
     refreshInterval: 0s
     datasources: {}
