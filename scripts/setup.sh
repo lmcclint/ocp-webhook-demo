@@ -59,12 +59,16 @@ if ! oc get crd persesdashboards.perses.dev &>/dev/null; then
     echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
     echo "  Then re-run setup.sh after the operator is ready."
     echo ""
+    read -r -p "Press Enter to continue without Perses, or Ctrl-C to exit and install COO first... " </dev/tty
+    echo ""
 elif ! oc get uiplugin monitoring -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null | grep -q True; then
     echo ""
     echo "  NOTE: COO is installed but Perses UI plugin is not enabled or not ready."
     echo "  To enable it:"
     echo "    oc apply -f deploy/coo-perses/02-coo-uiplugin-perses.yaml"
     echo "  Then re-run setup.sh after the plugin is available."
+    echo ""
+    read -r -p "Press Enter to continue without Perses, or Ctrl-C to exit and enable it first... " </dev/tty
     echo ""
 else
     echo "Deploying Perses Thanos datasource and dashboard..."
