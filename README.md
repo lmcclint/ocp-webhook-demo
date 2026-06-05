@@ -26,6 +26,8 @@ oc get csv -n openshift-cluster-observability-operator -w
 
 Once the CSV shows `Succeeded`, the dashboard will be deployed automatically by `setup.sh` and is accessible in the OpenShift console under **Observe → Dashboards (Perses)**.
 
+**Note:** Perses is currently in Tech Preview (using `perses.dev/v1alpha2` API). The dashboard CRDs and UIPlugin configuration may change in future OpenShift releases.
+
 A standalone Grafana JSON is also available at [dashboards/webhook-performance-grafana.json](dashboards/webhook-performance-grafana.json) if you prefer Grafana.
 
 ## Quick Start

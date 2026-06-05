@@ -2,7 +2,8 @@
 
 | OpenShift Version | Kubernetes Version | Date Tested | Status | Notes |
 |---|---|---|---|---|
-| — | — | — | — | No clusters tested yet |
+| 4.18 | 1.31 | 2026-06-04 | Tested | Full demo + Perses dashboard |
+| 4.20 | 1.33 | 2026-06-04 | Tested | Full demo + Perses dashboard |
 
 ## How to Add an Entry
 
