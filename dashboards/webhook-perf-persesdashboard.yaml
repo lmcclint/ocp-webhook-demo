@@ -43,8 +43,9 @@ spec:
         kind: Panel
         spec:
           display:
-            description: Combined duration of all webhooks in each admission step
-            name: Total Admission Step Duration
+            description: Sum of all webhook-perf webhook latencies — the total admission
+              delay added to each API request
+            name: Total Webhook Overhead Per Request
           plugin:
             kind: TimeSeriesChart
             spec:
@@ -61,19 +62,19 @@ spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: rate(apiserver_admission_step_admission_duration_seconds_sum{type="validate"}[5m])
-                      /
-                      rate(apiserver_admission_step_admission_duration_seconds_count{type="validate"}[5m])
-                    seriesNameFormat: Validating
+                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"webhook-perf-.*",
+                      type="validating"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                      type="validating"}[5m]))
+                    seriesNameFormat: Validating total
             - kind: TimeSeriesQuery
               spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: rate(apiserver_admission_step_admission_duration_seconds_sum{type="mutate"}[5m])
-                      /
-                      rate(apiserver_admission_step_admission_duration_seconds_count{type="mutate"}[5m])
-                    seriesNameFormat: Mutating
+                    query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"webhook-perf-.*",
+                      type="admit"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"webhook-perf-.*",
+                      type="admit"}[5m]))
+                    seriesNameFormat: Mutating total
       "2":
         kind: Panel
         spec:

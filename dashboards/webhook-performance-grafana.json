@@ -35,8 +35,8 @@
       ]
     },
     {
-      "title": "Total Admission Step Duration",
-      "description": "Combined duration of all webhooks in each admission step",
+      "title": "Total Webhook Overhead Per Request",
+      "description": "Sum of all webhook-perf webhook latencies — the total admission delay added to each API request",
       "type": "timeseries",
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 0 },
       "fieldConfig": {
@@ -52,13 +52,13 @@
       },
       "targets": [
         {
-          "expr": "rate(apiserver_admission_step_admission_duration_seconds_sum{type=\"validate\"}[5m]) / rate(apiserver_admission_step_admission_duration_seconds_count{type=\"validate\"}[5m])",
-          "legendFormat": "Validating",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"validating\"}[5m]))",
+          "legendFormat": "Validating total",
           "refId": "A"
         },
         {
-          "expr": "rate(apiserver_admission_step_admission_duration_seconds_sum{type=\"mutate\"}[5m]) / rate(apiserver_admission_step_admission_duration_seconds_count{type=\"mutate\"}[5m])",
-          "legendFormat": "Mutating",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"webhook-perf-.*\", type=\"admit\"}[5m]))",
+          "legendFormat": "Mutating total",
           "refId": "B"
         }
       ]
