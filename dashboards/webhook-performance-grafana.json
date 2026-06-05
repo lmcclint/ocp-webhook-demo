@@ -52,12 +52,12 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"validating\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"validating\"}[5m]))",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"validating\"}[5m]) / (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"validating\"}[5m]) > 0))",
           "legendFormat": "Validating total",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"admit\"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"admit\"}[5m]))",
+          "expr": "sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~\"$webhook_filter\", type=\"admit\"}[5m]) / (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~\"$webhook_filter\", type=\"admit\"}[5m]) > 0))",
           "legendFormat": "Mutating total",
           "refId": "B"
         }

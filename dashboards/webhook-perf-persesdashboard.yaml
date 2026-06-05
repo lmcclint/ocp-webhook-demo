@@ -63,8 +63,8 @@ spec:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"$webhook_filter",
-                      type="validating"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
-                      type="validating"}[5m]))
+                      type="validating"}[5m]) / (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
+                      type="validating"}[5m]) > 0))
                     seriesNameFormat: Validating total
             - kind: TimeSeriesQuery
               spec:
@@ -72,8 +72,8 @@ spec:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: sum(rate(apiserver_admission_webhook_admission_duration_seconds_sum{name=~"$webhook_filter",
-                      type="admit"}[5m]) / rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
-                      type="admit"}[5m]))
+                      type="admit"}[5m]) / (rate(apiserver_admission_webhook_admission_duration_seconds_count{name=~"$webhook_filter",
+                      type="admit"}[5m]) > 0))
                     seriesNameFormat: Mutating total
       "2":
         kind: Panel
