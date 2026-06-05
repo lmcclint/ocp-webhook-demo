@@ -5,6 +5,9 @@ kubeconfig.*
 *.kubeconfig
 auth/
 
+# Planning/design docs
+docs/superpowers/
+
 # Demo output logs
 demo-output*.txt
 demo-log*.txt
